@@ -1,0 +1,5 @@
+"!include": shared/common.yaml
+outputDir: ../clients/rust
+generatorName: rust
+additionalProperties:
+  packageName: port_api_client

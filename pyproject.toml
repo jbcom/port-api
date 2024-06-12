@@ -1,0 +1,29 @@
+[project]
+name = "port-api"
+version = "1.0.0"
+description = "Port API Clients: Comprehensive client libraries for interacting with the Port API, enabling seamless integration with your software catalog."
+authors = ["Jon Bogaty <jon@jonbogaty.com>"]
+license = "MIT"
+requires-python = ">=3.9"
+dependencies = [
+    "sphinx>=4.0.2",
+    "sphinx-rtd-theme>=1.0.0",
+    "sphinxcontrib-mermaid>=0.6.2",
+    "sphinx-markdown-tables>=0.0.17",
+    "myst-parser>=3.0.1",
+]
+
+[build-system]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.scripts]
+generate_readme = { shell = "sphinx-build -b markdown docs/ ./" }
+build_sphinx = { shell = "sphinx-build -b html docs/ docs/_build/html" }
+serve_sphinx = { shell = "python -m http.server --directory docs/_build/html 8000" }
+lint = { shell = "flake8" }
+test = { shell = "pytest" }
+all = { composite = ["lint", "test"] }

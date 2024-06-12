@@ -1,0 +1,207 @@
+{
+  "shared": {
+    "common": {
+      "inputSpec": "../openapi.json",
+      "additionalProperties": {
+        "packageName": "port_api_client",
+        "packageVersion": "1.0.0",
+        "artifactVersion": "1.0.0",
+        "projectName": "port-api-client",
+        "packageDescription": "Port API client library",
+        "hideGenerationTimestamp": true
+      }
+    }
+  },
+  "languages": {
+    "ada": {
+      "outputDir": "../clients/ada",
+      "generatorName": "ada",
+      "additionalProperties": {
+        "packageName": "PortAPIClient"
+      }
+    },
+    "android": {
+      "outputDir": "../clients/android",
+      "generatorName": "android",
+      "additionalProperties": {
+        "artifactId": "port-api-client"
+      }
+    },
+    "apex": {
+      "outputDir": "../clients/apex",
+      "generatorName": "apex",
+      "additionalProperties": {
+        "packageName": "PortApiClient"
+      }
+    },
+    "bash": {
+      "outputDir": "../clients/bash",
+      "generatorName": "bash",
+      "additionalProperties": {
+        "executable": true,
+        "generateBashCompletion": true,
+        "generateZshCompletion": true,
+        "scriptName": "port_api_client"
+      }
+    },
+    "c": {
+      "outputDir": "../clients/c",
+      "generatorName": "c",
+      "additionalProperties": {
+        "packageName": "PortAPIClient"
+      }
+    },
+    "clojure": {
+      "outputDir": "../clients/clojure",
+      "generatorName": "clojure",
+      "additionalProperties": {
+        "packageName": "port-api-client"
+      }
+    },
+    "cpp-qt-client": {
+      "outputDir": "../clients/cpp-qt-client",
+      "generatorName": "cpp-qt-client",
+      "additionalProperties": {
+        "projectName": "PortApiClient",
+        "packageName": "PortAPIClient"
+      }
+    },
+    "dart": {
+      "outputDir": "../clients/dart",
+      "generatorName": "dart",
+      "additionalProperties": {
+        "projectName": "port_api_client",
+        "packageName": "port_api_client"
+      }
+    },
+    "dart-dio": {
+      "outputDir": "../clients/dart-dio",
+      "generatorName": "dart-dio",
+      "additionalProperties": {
+        "projectName": "port_api_client",
+        "packageName": "port_api_client"
+      }
+    },
+    "elixir": {
+      "outputDir": "../clients/elixir",
+      "generatorName": "elixir",
+      "additionalProperties": {
+        "packageName": "port_api_client",
+        "projectName": "port_api_client"
+      }
+    },
+    "elm": {
+      "outputDir": "../clients/elm",
+      "generatorName": "elm",
+      "additionalProperties": {
+        "packageName": "port_api_client"
+      }
+    },
+    "erlang-client": {
+      "outputDir": "../clients/erlang-client",
+      "generatorName": "erlang-client",
+      "additionalProperties": {
+        "packageName": "port_api_client",
+        "projectName": "port_api_client"
+      }
+    },
+    "go": {
+      "outputDir": "../clients/go",
+      "generatorName": "go",
+      "additionalProperties": {
+        "packageName": "port_api_client",
+        "projectName": "port_api_client"
+      }
+    },
+    "groovy": {
+      "outputDir": "../clients/groovy",
+      "generatorName": "groovy",
+      "additionalProperties": {
+        "packageName": "port_api_client"
+      }
+    },
+    "java": {
+      "outputDir": "../clients/java",
+      "generatorName": "java",
+      "additionalProperties": {
+        "artifactId": "port-api-client",
+        "groupId": "com.jbcom",
+        "invokerPackage": "com.jbcom.invoker",
+        "apiPackage": "com.jbcom.api",
+        "modelPackage": "com.jbcom.model"
+      }
+    },
+    "javascript": {
+      "outputDir": "../clients/javascript",
+      "generatorName": "javascript",
+      "additionalProperties": {
+        "npmName": "port-api-client",
+        "npmVersion": "1.0.0",
+        "snapshot": false,
+        "supportsES6": true
+      }
+    },
+    "kotlin": {
+      "outputDir": "../clients/kotlin",
+      "generatorName": "kotlin",
+      "additionalProperties": {
+        "artifactId": "port-api-client",
+        "library": "jvm-okhttp4"
+      }
+    },
+    "php": {
+      "outputDir": "../clients/php",
+      "generatorName": "php",
+      "additionalProperties": {
+        "invokerPackage": "Port\\ApiClient",
+        "composerVendorName": "jbcom",
+        "composerProjectName": "port-api-client"
+      }
+    },
+    "python": {
+      "outputDir": "../clients/python",
+      "generatorName": "python",
+      "additionalProperties": {
+        "generateSourceCodeOnly": true
+      }
+    },
+    "r": {
+      "outputDir": "../clients/r",
+      "generatorName": "r",
+      "additionalProperties": {
+        "licenseName": "MIT"
+      }
+    },
+    "ruby": {
+      "outputDir": "../clients/ruby",
+      "generatorName": "ruby",
+      "additionalProperties": {
+        "gemName": "port_api_client",
+        "moduleName": "Port::ApiClient"
+      }
+    },
+    "rust": {
+      "outputDir": "../clients/rust",
+      "generatorName": "rust",
+      "additionalProperties": {
+        "packageName": "port_api_client"
+      }
+    },
+    "swift5": {
+      "outputDir": "../clients/swift5",
+      "generatorName": "swift5",
+      "additionalProperties": {
+        "projectName": "PortApiClient",
+        "podVersion": "1.0.0"
+      }
+    },
+    "typescript-node": {
+      "outputDir": "../clients/typescript-node",
+      "generatorName": "typescript-node",
+      "additionalProperties": {
+        "npmName": "port-api-client",
+        "npmVersion": "1.0.0"
+      }
+    }
+  }
+}

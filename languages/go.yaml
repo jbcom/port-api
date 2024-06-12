@@ -1,0 +1,6 @@
+"!include": shared/common.yaml
+outputDir: ../clients/go
+generatorName: go
+additionalProperties:
+  packageName: port_api_client
+  projectName: port_api_client

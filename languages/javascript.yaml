@@ -1,0 +1,8 @@
+"!include": shared/common.yaml
+outputDir: ../clients/javascript
+generatorName: javascript
+additionalProperties:
+  npmName: port-api-client
+  npmVersion: 1.0.0
+  snapshot: false
+  supportsES6: true

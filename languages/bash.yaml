@@ -1,0 +1,8 @@
+"!include": shared/common.yaml
+outputDir: ../clients/bash
+generatorName: bash
+additionalProperties:
+  executable: true
+  generateBashCompletion: true
+  generateZshCompletion: true
+  scriptName: port_api_client

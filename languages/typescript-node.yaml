@@ -1,0 +1,6 @@
+"!include": shared/common.yaml
+outputDir: ../clients/typescript-node
+generatorName: typescript-node
+additionalProperties:
+  npmName: port-api-client
+  npmVersion: 1.0.0

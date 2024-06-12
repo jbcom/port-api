@@ -1,0 +1,22 @@
+name: Configure Renovate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  configure-renovate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Renovate
+        run: |
+          npx renovate-config-validator
+          npx renovate

@@ -1,0 +1,40 @@
+name: Generate Clients and Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  generate-clients-and-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Generate clients and tests using OpenAI
+        run: pnpm run generate:clients
+
+      - name: Run end-to-end tests
+        run: pnpm run test:e2e
+
+      - name: Commit and push generated clients and tests
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add clients/ tests/generated/
+          git diff --cached --name-only
+          git commit -m 'Generate clients and tests using OpenAI' || echo "No changes to commit"
+          git push origin main || echo "No changes to push"

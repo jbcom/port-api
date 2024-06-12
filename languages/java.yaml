@@ -1,0 +1,9 @@
+"!include": shared/common.yaml
+outputDir: ../clients/java
+generatorName: java
+additionalProperties:
+  artifactId: port-api-client
+  groupId: com.jbcom
+  invokerPackage: com.jbcom.invoker
+  apiPackage: com.jbcom.api
+  modelPackage: com.jbcom.model

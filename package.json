@@ -1,0 +1,36 @@
+{
+  "name": "port-api",
+  "version": "1.0.0",
+  "description": "Port API Clients: Comprehensive client libraries for interacting with the Port API, enabling seamless integration with your software catalog.",
+  "scripts": {
+    "clients": "node scripts/generateClients.js",
+    "gitignore": "node scripts/generateGitIgnore.js",
+    "tests": "node scripts/generateTests.js",
+    "test:e2e": "mocha tests/e2e.test.js",
+    "lint": "eslint '**/*.js'",
+    "format": "prettier --write '**/*.{js,json,md}'"
+  },
+  "author": "Jon Bogaty",
+  "license": "MIT",
+  "dependencies": {
+    "@openapitools/openapi-generator-cli": "^2.13.4",
+    "add-gitignore": "^1.1.1",
+    "dotenv": "^16.4.5",
+    "gpt-3-encoder": "^1.1.4",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.50.0",
+    "yaml": "^2.4.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.4.0",
+    "@octokit/rest": "^20.1.1",
+    "chai": "^5.1.1",
+    "chai-fs": "^2.0.0",
+    "eslint": "^9.4.0",
+    "globals": "^15.4.0",
+    "mocha": "^10.4.0",
+    "prettier": "^3.3.2",
+    "tweetsodium": "^0.0.4"
+  },
+  "packageManager": "pnpm@9.3.0"
+}

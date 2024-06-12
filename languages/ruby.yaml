@@ -1,0 +1,6 @@
+"!include": shared/common.yaml
+outputDir: ../clients/ruby
+generatorName: ruby
+additionalProperties:
+  gemName: port_api_client
+  moduleName: Port::ApiClient

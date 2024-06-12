@@ -1,0 +1,5 @@
+"!include": shared/common.yaml
+outputDir: ../clients/r
+generatorName: r
+additionalProperties:
+  licenseName: MIT

@@ -1,0 +1,7 @@
+"!include": shared/common.yaml
+outputDir: ../clients/php
+generatorName: php
+additionalProperties:
+  invokerPackage: Port\ApiClient
+  composerVendorName: jbcom
+  composerProjectName: port-api-client
