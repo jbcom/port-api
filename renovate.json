@@ -13,15 +13,13 @@
       "matchPackagePatterns": ["*"],
       "groupName": "js/ts dependencies",
       "matchManagers": ["npm"],
-      "matchLanguages": ["javascript", "typescript"],
       "schedule": ["before 3am on Monday"]
     },
     {
       "description": "Group all Python dependencies together",
       "matchPackagePatterns": ["*"],
       "groupName": "python dependencies",
-      "matchManagers": ["pip"],
-      "matchLanguages": ["python"],
+      "matchManagers": ["pip_requirements"],
       "schedule": ["before 3am on Monday"]
     },
     {
@@ -29,7 +27,6 @@
       "matchPackagePatterns": ["*"],
       "groupName": "java dependencies",
       "matchManagers": ["maven"],
-      "matchLanguages": ["java"],
       "schedule": ["before 3am on Monday"]
     },
     {
@@ -37,7 +34,6 @@
       "matchPackagePatterns": ["*"],
       "groupName": ".NET dependencies",
       "matchManagers": ["nuget"],
-      "matchLanguages": [".net"],
       "schedule": ["before 3am on Monday"]
     },
     {
@@ -45,7 +41,6 @@
       "matchPackagePatterns": ["*"],
       "groupName": "go dependencies",
       "matchManagers": ["gomod"],
-      "matchLanguages": ["go"],
       "schedule": ["before 3am on Monday"]
     },
     {
@@ -61,7 +56,7 @@
   },
   "enabledManagers": [
     "npm",
-    "pip",
+    "pip_requirements",
     "maven",
     "nuget",
     "gomod",
@@ -69,7 +64,6 @@
   ],
   "prConcurrentLimit": 10,
   "prHourlyLimit": 2,
-  "prCreation": "not-pending",
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependency Update Dashboard"
 }
