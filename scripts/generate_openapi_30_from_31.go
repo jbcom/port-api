@@ -155,7 +155,7 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
             SecuritySchemes: make(map[string]SecurityScheme),
             Schemas:         make(map[string]Schema30),
         },
-        Paths: spec.Paths,
+        Paths: convertPaths(spec.Paths),
     }
 
     // Convert security schemes
@@ -175,11 +175,19 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
     return openAPI30
 }
 
+func convertPaths(paths *openapi3.Paths) map[string]interface{} {
+    result := make(map[string]interface{})
+    for k, v := range paths.MapOfPathItemValues {
+        result[k] = v
+    }
+    return result
+}
+
 func convertSchema31To30(schema31 *openapi3.Schema) Schema30 {
     schema30 := Schema30{
         Type:                 schema31.Type,
         Properties:           make(map[string]Property30),
-        AdditionalProperties: schema31.AdditionalProperties,
+        AdditionalProperties: schema31.AdditionalProperties.Has,
         Enum:                 convertEnum31To30(schema31.Enum),
         Required:             schema31.Required,
         AnyOf:                []*Schema30{},
@@ -218,7 +226,7 @@ func convertProperty31To30(property31 *openapi3.Schema) Property30 {
         Format:               property31.Format,
         Enum:                 convertEnum31To30(property31.Enum),
         Properties:           make(map[string]Property30),
-        AdditionalProperties: property31.AdditionalProperties,
+        AdditionalProperties: property31.AdditionalProperties.Has,
         AnyOf:                []*Property30{},
     }
 
@@ -258,7 +266,4 @@ func validateOpenAPI(filePath string) {
     } else {
         fmt.Printf("The OpenAPI document is not valid. See errors:\n")
         for _, desc := range result.Errors() {
-            fmt.Printf("- %s\n", desc)
-        }
-    }
-}
+           
