@@ -169,9 +169,9 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
     return openAPI30
 }
 
-func convertPaths(paths *openapi3.Paths) map[string]interface{} {
+func convertPaths(paths openapi3.Paths) map[string]interface{} {
     result := make(map[string]interface{})
-    for k, v := range *paths {
+    for k, v := range paths {
         result[k] = v
     }
     return result
