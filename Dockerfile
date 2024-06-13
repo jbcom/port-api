@@ -2,14 +2,15 @@
 FROM openapitools/openapi-generator-cli as base
 
 # Stage 2: Download and backport OpenAPI 3.1 to 3.0
-FROM python:3.12-slim AS downloader
+FROM golang:latest AS downloader
 
-RUN pip3 install openapi-spec-validator jsonref
-
-COPY scripts/backport_openapi_31_to_30.py /app/backport_openapi_31_to_30.py
 WORKDIR /app
 
-RUN python3 backport_openapi_31_to_30.py
+COPY scripts/backport_openapi_31_to_30.go /app/backport_openapi_31_to_30.go
+
+RUN go mod init backport && go get github.com/getkin/kin-openapi/openapi3 && go build -o backport_openapi_31_to_30 backport_openapi_31_to_30.go
+
+RUN ./backport_openapi_31_to_30
 
 # Stage 3: Generate clients for JavaScript
 FROM base AS javascript
