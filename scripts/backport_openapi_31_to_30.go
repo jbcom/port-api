@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
@@ -61,9 +60,11 @@ func BackportOpenAPI31To30(doc *openapi3.T) *openapi3.T {
 			if current.RequestBody != nil && current.RequestBody.Value != nil {
 				queue = append(queue, current.RequestBody.Value.Content)
 			}
-			for _, response := range current.Responses {
-				if response.Value != nil {
-					queue = append(queue, response.Value.Content)
+			if current.Responses != nil {
+				for _, response := range *current.Responses {
+					if response.Value != nil {
+						queue = append(queue, response.Value.Content)
+					}
 				}
 			}
 		case openapi3.Content:
@@ -76,20 +77,23 @@ func BackportOpenAPI31To30(doc *openapi3.T) *openapi3.T {
 				if schema.OneOf != nil {
 					newOneOf := []*openapi3.SchemaRef{}
 					for _, item := range schema.OneOf {
-						if item.Value.Type != "" {
+						if item.Value != nil && item.Value.Type != "" {
 							newOneOf = append(newOneOf, item)
 						}
 					}
 					schema.OneOf = newOneOf
 				}
 				if schema.AdditionalProperties != nil {
-					// Properly handle AdditionalProperties
-					if additionalProperties, ok := schema.AdditionalProperties.(*openapi3.SchemaRef); ok {
-						queue = append(queue, additionalProperties)
+					if additionalProperties, ok := schema.AdditionalProperties.(*openapi3.SchemaOrBool); ok {
+						if additionalProperties.Schema != nil {
+							queue = append(queue, additionalProperties.Schema)
+						}
 					}
 				}
 				queue = append(queue, schema.Properties)
-				queue = append(queue, schema.Items)
+				if schema.Items != nil {
+					queue = append(queue, schema.Items)
+				}
 			}
 		case map[string]*openapi3.SchemaRef:
 			for _, schema := range current {
