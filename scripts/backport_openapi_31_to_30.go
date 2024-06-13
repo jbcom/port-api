@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
-func downloadOpenAPISpec(url string) (*openapi3.T, error) {
+// DownloadOpenAPISpec downloads the OpenAPI spec from the given URL
+func DownloadOpenAPISpec(url string) (*openapi3.T, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -31,63 +33,77 @@ func downloadOpenAPISpec(url string) (*openapi3.T, error) {
 	return doc, nil
 }
 
-func backportOpenAPI31To30(doc *openapi3.T) *openapi3.T {
+// BackportOpenAPI31To30 converts OpenAPI 3.1 spec to 3.0
+func BackportOpenAPI31To30(doc *openapi3.T) *openapi3.T {
 	doc.OpenAPI = "3.0.3"
 
-	if doc.Components != nil {
-		doc.Components.RequestBodies = nil
-		doc.Components.Headers = nil
-		doc.Components.Examples = nil
-		doc.Components.Links = nil
-		doc.Components.Callbacks = nil
-		doc.Components.SecuritySchemes = nil
+	// Use a queue to avoid recursion
+	queue := []interface{}{doc.Paths}
 
-		for _, schema := range doc.Components.Schemas {
-			backportSchema(schema.Value)
-		}
-	}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
 
-	for _, pathItem := range doc.Paths {
-		for _, operation := range pathItem.Operations() {
-			if operation.RequestBody != nil && operation.RequestBody.Value != nil {
-				operation.RequestBody.Value.Content = nil
+		switch current := current.(type) {
+		case openapi3.Paths:
+			for _, pathItem := range current {
+				queue = append(queue, pathItem)
 			}
-			for _, param := range operation.Parameters {
-				if param.Value != nil && param.Value.Schema != nil {
-					backportSchema(param.Value.Schema.Value)
+		case *openapi3.PathItem:
+			if current != nil {
+				for _, op := range []*openapi3.Operation{current.Get, current.Put, current.Post, current.Delete, current.Options, current.Head, current.Patch, current.Trace} {
+					if op != nil {
+						queue = append(queue, op)
+					}
 				}
 			}
-			operation.Responses = nil
+		case *openapi3.Operation:
+			if current.RequestBody != nil && current.RequestBody.Value != nil {
+				queue = append(queue, current.RequestBody.Value.Content)
+			}
+			for _, response := range current.Responses {
+				if response.Value != nil {
+					queue = append(queue, response.Value.Content)
+				}
+			}
+		case openapi3.Content:
+			for _, mediaType := range current {
+				queue = append(queue, mediaType.Schema)
+			}
+		case *openapi3.SchemaRef:
+			if current != nil && current.Value != nil {
+				schema := current.Value
+				if schema.OneOf != nil {
+					newOneOf := []*openapi3.SchemaRef{}
+					for _, item := range schema.OneOf {
+						if item.Value.Type != "" {
+							newOneOf = append(newOneOf, item)
+						}
+					}
+					schema.OneOf = newOneOf
+				}
+				if schema.AdditionalProperties != nil {
+					// Properly handle AdditionalProperties
+					if additionalProperties, ok := schema.AdditionalProperties.(*openapi3.SchemaRef); ok {
+						queue = append(queue, additionalProperties)
+					}
+				}
+				queue = append(queue, schema.Properties)
+				queue = append(queue, schema.Items)
+			}
+		case map[string]*openapi3.SchemaRef:
+			for _, schema := range current {
+				queue = append(queue, schema)
+			}
 		}
 	}
 
 	return doc
 }
 
-func backportSchema(schema *openapi3.Schema) {
-	if schema == nil {
-		return
-	}
-
-	if schema.Properties != nil {
-		for _, prop := range schema.Properties {
-			backportSchema(prop.Value)
-		}
-	}
-
-	if schema.Items != nil {
-		backportSchema(schema.Items.Value)
-	}
-
-	if schema.AdditionalProperties != nil {
-		if addProps, ok := schema.AdditionalProperties.Value.(*openapi3.Schema); ok {
-			backportSchema(addProps)
-		}
-	}
-}
-
-func saveBackportedSpec(doc *openapi3.T, outputFile string) error {
-	data, err := json.MarshalIndent(doc, "", "  ")
+// SaveBackportedSpec saves the modified spec to a file
+func SaveBackportedSpec(spec *openapi3.T, outputFile string) error {
+	data, err := json.MarshalIndent(spec, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -95,23 +111,37 @@ func saveBackportedSpec(doc *openapi3.T, outputFile string) error {
 	return ioutil.WriteFile(outputFile, data, 0644)
 }
 
+// ValidateSpec validates the OpenAPI spec
+func ValidateSpec(filePath string) error {
+	loader := openapi3.NewLoader()
+	doc, err := loader.LoadFromFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	return doc.Validate(loader.Context)
+}
+
 func main() {
 	url := "https://api.getport.io/json"
 	outputFile := "openapi.json"
 
-	doc, err := downloadOpenAPISpec(url)
+	spec, err := DownloadOpenAPISpec(url)
 	if err != nil {
-		fmt.Printf("Error downloading OpenAPI spec: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error downloading OpenAPI spec: %v", err)
 	}
 
-	backportedDoc := backportOpenAPI31To30(doc)
+	backportedSpec := BackportOpenAPI31To30(spec)
 
-	err = saveBackportedSpec(backportedDoc, outputFile)
+	err = SaveBackportedSpec(backportedSpec, outputFile)
 	if err != nil {
-		fmt.Printf("Error saving backported spec: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error saving backported spec: %v", err)
 	}
 
-	fmt.Println("Successfully backported OpenAPI 3.1 spec to OpenAPI 3.0 and saved to openapi.json")
+	err = ValidateSpec(outputFile)
+	if err != nil {
+		log.Fatalf("Validation error: %v", err)
+	}
+
+	fmt.Println("openapi.json successfully created and validated.")
 }
