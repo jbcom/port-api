@@ -115,7 +115,6 @@ func main() {
         return
     }
 
-    // Resolve JSON references
     loader := openapi3.NewLoader()
     spec, err := loader.LoadFromData(data)
     if err != nil {
@@ -123,17 +122,14 @@ func main() {
         return
     }
 
-    // Convert OpenAPI 3.1 to OpenAPI 3.0.3
     openAPI30 := convertToOpenAPI30(spec)
 
-    // Marshal the new OpenAPI 3.0.3 spec to JSON
     outputData, err := json.MarshalIndent(openAPI30, "", "  ")
     if err != nil {
         fmt.Println("Error marshalling JSON:", err)
         return
     }
 
-    // Write the new OpenAPI 3.0.3 spec to a file
     err = ioutil.WriteFile(outputFile, outputData, 0644)
     if err != nil {
         fmt.Println("Error writing output file:", err)
@@ -158,7 +154,6 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
         Paths: convertPaths(spec.Paths),
     }
 
-    // Convert security schemes
     for key, scheme := range spec.Components.SecuritySchemes {
         openAPI30.Components.SecuritySchemes[key] = SecurityScheme{
             Type: scheme.Value.Type,
@@ -167,7 +162,6 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
         }
     }
 
-    // Convert schemas
     for key, schema := range spec.Components.Schemas {
         openAPI30.Components.Schemas[key] = *convertSchema31To30(schema.Value)
     }
@@ -175,9 +169,9 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
     return openAPI30
 }
 
-func convertPaths(paths *openapi3.Paths) map[string]interface{} {
+func convertPaths(paths openapi3.Paths) map[string]interface{} {
     result := make(map[string]interface{})
-    for k, v := range paths.Map {
+    for k, v := range paths {
         result[k] = v
     }
     return result
