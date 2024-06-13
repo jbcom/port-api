@@ -81,48 +81,64 @@ jobs:
           name: openapi_30
           path: ./openapi.json
 
-      - name: Set up ${{ matrix.language }}
-        uses: |
-          if [ "${{ matrix.language }}" = "python" ]; then
-            actions/setup-python@v4
-            with:
-              python-version: '3.x'
-          elif [ "${{ matrix.language }}" = "java" ]; then
-            actions/setup-java@v4
-            with:
-              distribution: 'adopt'
-              java-version: '11'
-          elif [ "${{ matrix.language }}" = "r" ]; then
-            r-lib/actions/setup-r@v2
-          elif [ "${{ matrix.language }}" = "ruby" ]; then
-            ruby/setup-ruby@v1
-            with:
-              ruby-version: '3.x'
-          elif [ "${{ matrix.language }}" = "php" ]; then
-            shivammathur/setup-php@v2
-            with:
-              php-version: '7.4'
-          elif [ "${{ matrix.language }}" = "rust" ]; then
-            actions-rs/toolchain@v1
-            with:
-              toolchain: stable
-              profile: minimal
-              override: true
-          elif [ "${{ matrix.language }}" = "typescript" ]; then
-            actions/setup-node@v4
-            with:
-              node-version: '16'
-          elif [ "${{ matrix.language }}" = "javascript" ]; then
-            actions/setup-node@v4
-            with:
-              node-version: '16'
-          elif [ "${{ matrix.language }}" = "go" ]; then
-            actions/setup-go@v4
-            with:
-              go-version: '1.20'
-          elif [ "${{ matrix.language }}" = "bash" ]; then
-            echo "Bash does not require a specific setup action"
-          fi
+      - name: Set up Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Set up Java
+        if: matrix.language == 'java'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+
+      - name: Set up R
+        if: matrix.language == 'r'
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Set up Ruby
+        if: matrix.language == 'ruby'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.x'
+
+      - name: Set up PHP
+        if: matrix.language == 'php'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: Set up Rust
+        if: matrix.language == 'rust'
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Set up Node.js for TypeScript
+        if: matrix.language == 'typescript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
+      - name: Set up Node.js for JavaScript
+        if: matrix.language == 'javascript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
+      - name: Set up Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Set up Bash
+        if: matrix.language == 'bash'
+        run: echo "Bash does not require a specific setup action"
 
       - name: Install openapi-generator-cli
         run: npm install @openapitools/openapi-generator-cli -g
