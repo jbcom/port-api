@@ -151,7 +151,7 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
             SecuritySchemes: make(map[string]SecurityScheme),
             Schemas:         make(map[string]Schema30),
         },
-        Paths: convertPaths(spec.Paths),
+        Paths: convertPaths(*spec.Paths),
     }
 
     for key, scheme := range spec.Components.SecuritySchemes {
