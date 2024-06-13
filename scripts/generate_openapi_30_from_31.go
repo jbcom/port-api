@@ -46,7 +46,7 @@ type SecurityScheme struct {
 }
 
 type Schema31 struct {
-    Type                 string                `json:"type,omitempty"`
+    Type                 *string               `json:"type,omitempty"`
     Properties           map[string]Property31 `json:"properties,omitempty"`
     Items                *Schema31             `json:"items,omitempty"`
     AdditionalProperties *bool                 `json:"additionalProperties,omitempty"`
@@ -72,7 +72,7 @@ type Schema30 struct {
 }
 
 type Property31 struct {
-    Type                 string                `json:"type,omitempty"`
+    Type                 *string               `json:"type,omitempty"`
     Format               string                `json:"format,omitempty"`
     Enum                 []interface{}         `json:"enum,omitempty"`
     Properties           map[string]Property31 `json:"properties,omitempty"`
@@ -169,9 +169,9 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
     return openAPI30
 }
 
-func convertPaths(paths *openapi3.Paths) map[string]interface{} {
+func convertPaths(paths map[string]*openapi3.PathItem) map[string]interface{} {
     result := make(map[string]interface{})
-    for k, v := range *paths {
+    for k, v := range paths {
         result[k] = v
     }
     return result
@@ -179,7 +179,7 @@ func convertPaths(paths *openapi3.Paths) map[string]interface{} {
 
 func convertSchema31To30(schema31 *openapi3.Schema) *Schema30 {
     schema30 := &Schema30{
-        Type:                 schema31.Type,
+        Type:                 derefString(schema31.Type),
         Properties:           make(map[string]Property30),
         AdditionalProperties: schema31.AdditionalProperties.Has,
         Enum:                 convertEnum31To30(schema31.Enum),
@@ -216,7 +216,7 @@ func convertEnum31To30(enum31 []interface{}) []string {
 
 func convertProperty31To30(property31 *openapi3.Schema) *Property30 {
     property30 := &Property30{
-        Type:                 property31.Type,
+        Type:                 derefString(property31.Type),
         Format:               property31.Format,
         Enum:                 convertEnum31To30(property31.Enum),
         Properties:           make(map[string]Property30),
@@ -237,6 +237,13 @@ func convertProperty31To30(property31 *openapi3.Schema) *Property30 {
     }
 
     return property30
+}
+
+func derefString(str *string) string {
+    if str == nil {
+        return ""
+    }
+    return *str
 }
 
 func validateOpenAPI(filePath string) {
