@@ -1,0 +1,75 @@
+{
+  "extends": ["config:base"],
+  "automerge": false,
+  "platformAutomerge": true,
+  "automergeType": "pr",
+  "schedule": ["before 3am on Monday"],
+  "labels": ["dependencies"],
+  "prCreation": "immediate",
+  "separateMajorMinor": true,
+  "packageRules": [
+    {
+      "description": "Group all JavaScript/TypeScript dependencies together",
+      "matchPackagePatterns": ["*"],
+      "groupName": "js/ts dependencies",
+      "matchManagers": ["npm"],
+      "matchLanguages": ["javascript", "typescript"],
+      "schedule": ["before 3am on Monday"]
+    },
+    {
+      "description": "Group all Python dependencies together",
+      "matchPackagePatterns": ["*"],
+      "groupName": "python dependencies",
+      "matchManagers": ["pip"],
+      "matchLanguages": ["python"],
+      "schedule": ["before 3am on Monday"]
+    },
+    {
+      "description": "Group all Java dependencies together",
+      "matchPackagePatterns": ["*"],
+      "groupName": "java dependencies",
+      "matchManagers": ["maven"],
+      "matchLanguages": ["java"],
+      "schedule": ["before 3am on Monday"]
+    },
+    {
+      "description": "Group all .NET dependencies together",
+      "matchPackagePatterns": ["*"],
+      "groupName": ".NET dependencies",
+      "matchManagers": ["nuget"],
+      "matchLanguages": [".net"],
+      "schedule": ["before 3am on Monday"]
+    },
+    {
+      "description": "Group all Go dependencies together",
+      "matchPackagePatterns": ["*"],
+      "groupName": "go dependencies",
+      "matchManagers": ["gomod"],
+      "matchLanguages": ["go"],
+      "schedule": ["before 3am on Monday"]
+    },
+    {
+      "description": "Group all GitHub Actions dependencies together",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "schedule": ["before 3am on Monday"]
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 3am on Monday"]
+  },
+  "enabledManagers": [
+    "npm",
+    "pip",
+    "maven",
+    "nuget",
+    "gomod",
+    "github-actions"
+  ],
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 2,
+  "prCreation": "not-pending",
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Dependency Update Dashboard"
+}
