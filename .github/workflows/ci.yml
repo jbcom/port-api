@@ -50,6 +50,17 @@ jobs:
         with:
           go-version: 1.20
 
+      - name: Initialize Go module
+        run: go mod init example.com/convert
+
+      - name: Copy Go script
+        run: |
+          mkdir -p scripts
+          cp -R ./scripts ./scripts
+
+      - name: Download dependencies
+        run: go mod tidy
+
       - name: Run conversion script
         run: go run scripts/generate_openapi_30_from_31.go input_openapi_31.json openapi.json
 
