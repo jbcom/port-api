@@ -51,12 +51,7 @@ jobs:
           go-version: 1.20
 
       - name: Initialize Go module
-        run: go mod init example.com/convert
-
-      - name: Copy Go script
-        run: |
-          mkdir -p scripts
-          cp -R ./scripts ./scripts
+        run: go mod init convert
 
       - name: Download dependencies
         run: go mod tidy
@@ -86,47 +81,46 @@ jobs:
           name: openapi_30
           path: ./openapi.json
 
-      - name: Set up environment
-        run: |
+      - name: Set up ${{ matrix.language }}
+        uses: |
           if [ "${{ matrix.language }}" = "python" ]; then
-            uses: actions/setup-python@v4
+            actions/setup-python@v4
             with:
               python-version: '3.x'
           elif [ "${{ matrix.language }}" = "java" ]; then
-            uses: actions/setup-java@v4
+            actions/setup-java@v4
             with:
               distribution: 'adopt'
               java-version: '11'
           elif [ "${{ matrix.language }}" = "r" ]; then
-            uses: r-lib/actions/setup-r@v2
+            r-lib/actions/setup-r@v2
           elif [ "${{ matrix.language }}" = "ruby" ]; then
-            uses: ruby/setup-ruby@v1
+            ruby/setup-ruby@v1
             with:
               ruby-version: '3.x'
           elif [ "${{ matrix.language }}" = "php" ]; then
-            uses: shivammathur/setup-php@v2
+            shivammathur/setup-php@v2
             with:
               php-version: '7.4'
           elif [ "${{ matrix.language }}" = "rust" ]; then
-            uses: actions-rs/toolchain@v1
+            actions-rs/toolchain@v1
             with:
               toolchain: stable
               profile: minimal
               override: true
           elif [ "${{ matrix.language }}" = "typescript" ]; then
-            uses: actions/setup-node@v4
+            actions/setup-node@v4
             with:
               node-version: '16'
           elif [ "${{ matrix.language }}" = "javascript" ]; then
-            uses: actions/setup-node@v4
+            actions/setup-node@v4
             with:
               node-version: '16'
           elif [ "${{ matrix.language }}" = "go" ]; then
-            uses: actions/setup-go@v4
+            actions/setup-go@v4
             with:
               go-version: '1.20'
           elif [ "${{ matrix.language }}" = "bash" ]; then
-            # Bash does not require a specific setup action
             echo "Bash does not require a specific setup action"
           fi
 
