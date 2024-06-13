@@ -1,13 +1,15 @@
 # Stage 1: Base image with openapi-cli-generator
 FROM openapitools/openapi-generator-cli as base
 
-# Stage 2: Download OpenAPI spec and convert from 3.1 to 3.0 using swagger-cli
-FROM node:latest AS downloader
+# Stage 2: Download and backport OpenAPI 3.1 to 3.0
+FROM python:3.12-slim AS downloader
 
+RUN pip3 install openapi-spec-validator jsonref
+
+COPY scripts/backport_openapi_31_to_30.py /app/backport_openapi_31_to_30.py
 WORKDIR /app
 
-# Download the OpenAPI 3.1 spec
-RUN curl -o openapi.json https://api.getport.io/json
+RUN python3 backport_openapi_31_to_30.py
 
 # Stage 3: Generate clients for JavaScript
 FROM base AS javascript
