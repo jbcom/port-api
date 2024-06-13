@@ -169,7 +169,7 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
 
     // Convert schemas
     for key, schema := range spec.Components.Schemas {
-        openAPI30.Components.Schemas[key] = convertSchema31To30(schema.Value)
+        openAPI30.Components.Schemas[key] = *convertSchema31To30(schema.Value)
     }
 
     return openAPI30
@@ -177,14 +177,14 @@ func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
 
 func convertPaths(paths *openapi3.Paths) map[string]interface{} {
     result := make(map[string]interface{})
-    for k, v := range paths.MapOfPathItemValues {
+    for k, v := range paths.Map {
         result[k] = v
     }
     return result
 }
 
-func convertSchema31To30(schema31 *openapi3.Schema) Schema30 {
-    schema30 := Schema30{
+func convertSchema31To30(schema31 *openapi3.Schema) *Schema30 {
+    schema30 := &Schema30{
         Type:                 schema31.Type,
         Properties:           make(map[string]Property30),
         AdditionalProperties: schema31.AdditionalProperties.Has,
@@ -196,7 +196,7 @@ func convertSchema31To30(schema31 *openapi3.Schema) Schema30 {
     }
 
     for key, property31 := range schema31.Properties {
-        schema30.Properties[key] = convertProperty31To30(property31.Value)
+        schema30.Properties[key] = *convertProperty31To30(property31.Value)
     }
 
     if schema31.Items != nil {
@@ -220,8 +220,8 @@ func convertEnum31To30(enum31 []interface{}) []string {
     return enum30
 }
 
-func convertProperty31To30(property31 *openapi3.Schema) Property30 {
-    property30 := Property30{
+func convertProperty31To30(property31 *openapi3.Schema) *Property30 {
+    property30 := &Property30{
         Type:                 property31.Type,
         Format:               property31.Format,
         Enum:                 convertEnum31To30(property31.Enum),
@@ -231,7 +231,7 @@ func convertProperty31To30(property31 *openapi3.Schema) Property30 {
     }
 
     for key, subProperty31 := range property31.Properties {
-        property30.Properties[key] = convertProperty31To30(subProperty31.Value)
+        property30.Properties[key] = *convertProperty31To30(subProperty31.Value)
     }
 
     if property31.Items != nil {
