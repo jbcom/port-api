@@ -1,151 +1,255 @@
-# Stage 1: Base image with openapi-generator-cli
-FROM openapitools/openapi-generator-cli as base
+package main
 
-# Stage 2: Download and run the new OpenAPI generation script
-FROM golang:latest AS downloader
-WORKDIR /app
-COPY scripts/generate_openapi_30_from_31.go /app/generate_openapi_30_from_31.go
+import (
+    "encoding/json"
+    "fmt"
+    "io/ioutil"
+    "os"
 
-# Initialize Go module and get the necessary dependencies
-RUN go mod init generate && \
-    go get github.com/getkin/kin-openapi/openapi3 && \
-    go get github.com/lestrrat-go/openapi/v3 && \
-    go get github.com/xeipuuv/gojsonschema && \
-    go build -o generate_openapi_30_from_31 generate_openapi_30_from_31.go
+    "github.com/getkin/kin-openapi/openapi3"
+    "github.com/xeipuuv/gojsonschema"
+)
 
-# Download the OpenAPI 3.1 specification
-RUN curl -o input_openapi_31.json https://api.getport.io/json
+type OpenAPI31 struct {
+    Openapi    string                 `json:"openapi"`
+    Info       Info                   `json:"info"`
+    Components Components31           `json:"components"`
+    Paths      map[string]interface{} `json:"paths"`
+}
 
-# Run the script to generate OpenAPI 3.0.3 specification
-RUN ./generate_openapi_30_from_31 input_openapi_31.json openapi.json
+type OpenAPI30 struct {
+    Openapi    string                 `json:"openapi"`
+    Info       Info                   `json:"info"`
+    Components Components30           `json:"components"`
+    Paths      map[string]interface{} `json:"paths"`
+}
 
-# Stage 3: Generate clients for JavaScript
-FROM base AS javascript
-WORKDIR /app
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/javascript.yaml /app/languages/javascript.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-RUN mkdir -p /app/clients/javascript && \
-    docker-entrypoint.sh generate -i /app/openapi.json -g javascript -o /app/clients/javascript
+type Info struct {
+    Title   string `json:"title"`
+    Version string `json:"version"`
+}
 
-# Stage 4: Generate clients for TypeScript
-FROM base AS typescript
-WORKDIR /app
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/typescript-node.yaml /app/languages/typescript-node.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-RUN mkdir -p /app/clients/typescript && \
-    docker-entrypoint.sh generate -i /app/openapi.json -g typescript-node -o /app/clients/typescript
+type Components31 struct {
+    SecuritySchemes map[string]SecurityScheme `json:"securitySchemes"`
+    Schemas         map[string]Schema31       `json:"schemas"`
+}
 
-# Stage 5: Generate clients for Python
-FROM python:latest AS python
-WORKDIR /app
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/python.yaml /app/languages/python.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-RUN mkdir -p /app/clients/python && \
-    openapi-generator-cli generate -i /app/openapi.json -g python -o /app/clients/python
+type Components30 struct {
+    SecuritySchemes map[string]SecurityScheme `json:"securitySchemes"`
+    Schemas         map[string]Schema30       `json:"schemas"`
+}
 
-# Stage 6: Generate clients for Java
-FROM base AS java
-WORKDIR /app
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/java.yaml /app/languages/java.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-RUN mkdir -p /app/clients/java && \
-    docker-entrypoint.sh generate -i /app/openapi.json -g java -o /app/clients/java
+type SecurityScheme struct {
+    Type string `json:"type"`
+    Name string `json:"name"`
+    In   string `json:"in"`
+}
 
-# Stage 7: Generate clients for Go
-FROM golang:latest AS go
-WORKDIR /app
-COPY --from=base /opt/java /opt/java
-COPY --from=base /opt/openapi-generator /opt/openapi-generator
-COPY --from=base /usr/local/bin/docker-entrypoint.sh /usr/local/bin/openapi-cli-generator
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/go.yaml /app/languages/go.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-ENV PATH="/opt/java/openjdk/bin:$PATH"
-ENV JAVA_HOME="/opt/java/openjdk"
-RUN mkdir -p /app/clients/go && \
-    openapi-cli-generator generate -i /app/openapi.json -g go -o /app/clients/go
+type Schema31 struct {
+    Type                 string                 `json:"type,omitempty"`
+    Properties           map[string]Property31  `json:"properties,omitempty"`
+    Items                *Schema31              `json:"items,omitempty"`
+    AdditionalProperties bool                   `json:"additionalProperties"`
+    Enum                 []string               `json:"enum,omitempty"`
+    Required             []string               `json:"required,omitempty"`
+    OneOf                []Schema31             `json:"oneOf,omitempty"`
+    AnyOf                []Schema31             `json:"anyOf,omitempty"`
+    AllOf                []Schema31             `json:"allOf,omitempty"`
+    Format               string                 `json:"format,omitempty"`
+    Title                string                 `json:"title,omitempty"`
+}
 
-# Stage 8: Generate clients for Bash
-FROM base AS bash
-WORKDIR /app
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/bash.yaml /app/languages/bash.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-RUN mkdir -p /app/clients/bash && \
-    docker-entrypoint.sh generate -i /app/openapi.json -g bash -o /app/clients/bash
+type Schema30 struct {
+    Type                 string                 `json:"type,omitempty"`
+    Properties           map[string]Property30  `json:"properties,omitempty"`
+    Items                *Schema30              `json:"items,omitempty"`
+    AdditionalProperties bool                   `json:"additionalProperties"`
+    Enum                 []string               `json:"enum,omitempty"`
+    Required             []string               `json:"required,omitempty"`
+    AnyOf                []Schema30             `json:"anyOf,omitempty"`
+    Format               string                 `json:"format,omitempty"`
+    Title                string                 `json:"title,omitempty"`
+}
 
-# Stage 9: Generate clients for R
-FROM r-base:latest AS r
-WORKDIR /app
-COPY --from=base /opt/java /opt/java
-COPY --from=base /opt/openapi-generator /opt/openapi-generator
-COPY --from=base /usr/local/bin/docker-entrypoint.sh /usr/local/bin/openapi-cli-generator
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/r.yaml /app/languages/r.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-ENV PATH="/opt/java/openjdk/bin:$PATH"
-ENV JAVA_HOME="/opt/java/openjdk"
-RUN mkdir -p /app/clients/r && \
-    openapi-cli-generator generate -i /app/openapi.json -g r -o /app/clients/r
+type Property31 struct {
+    Type                 string                 `json:"type,omitempty"`
+    Format               string                 `json:"format,omitempty"`
+    Enum                 []string               `json:"enum,omitempty"`
+    Properties           map[string]Property31  `json:"properties,omitempty"`
+    Items                *Property31            `json:"items,omitempty"`
+    AdditionalProperties bool                   `json:"additionalProperties,omitempty"`
+    OneOf                []Property31           `json:"oneOf,omitempty"`
+    AnyOf                []Property31           `json:"anyOf,omitempty"`
+    AllOf                []Property31           `json:"allOf,omitempty"`
+}
 
-# Stage 10: Generate clients for Ruby
-FROM ruby:latest AS ruby
-WORKDIR /app
-COPY --from=base /opt/java /opt/java
-COPY --from=base /opt/openapi-generator /opt/openapi-generator
-COPY --from=base /usr/local/bin/docker-entrypoint.sh /usr/local/bin/openapi-cli-generator
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/ruby.yaml /app/languages/ruby.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-ENV PATH="/opt/java/openjdk/bin:$PATH"
-ENV JAVA_HOME="/opt/java/openjdk"
-RUN mkdir -p /app/clients/ruby && \
-    openapi-cli-generator generate -i /app/openapi.json -g ruby -o /app/clients/ruby
+type Property30 struct {
+    Type                 string                 `json:"type,omitempty"`
+    Format               string                 `json:"format,omitempty"`
+    Enum                 []string               `json:"enum,omitempty"`
+    Properties           map[string]Property30  `json:"properties,omitempty"`
+    Items                *Property30            `json:"items,omitempty"`
+    AdditionalProperties bool                   `json:"additionalProperties,omitempty"`
+    AnyOf                []Property30           `json:"anyOf,omitempty"`
+    Format               string                 `json:"format,omitempty"`
+}
 
-# Stage 11: Generate clients for PHP
-FROM php:latest AS php
-WORKDIR /app
-COPY --from=base /opt/java /opt/java
-COPY --from=base /opt/openapi-generator /opt/openapi-generator
-COPY --from=base /usr/local/bin/docker-entrypoint.sh /usr/local/bin/openapi-cli-generator
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/php.yaml /app/languages/php.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-ENV PATH="/opt/java/openjdk/bin:$PATH"
-ENV JAVA_HOME="/opt/java/openjdk"
-RUN mkdir -p /app/clients/php && \
-    openapi-cli-generator generate -i /app/openapi.json -g php -o /app/clients/php
+func main() {
+    if len(os.Args) < 3 {
+        fmt.Println("Usage: go run main.go <input-file> <output-file>")
+        return
+    }
 
-# Stage 12: Generate clients for Rust
-FROM rust:latest AS rust
-WORKDIR /app
-COPY --from=base /opt/java /opt/java
-COPY --from=base /opt/openapi-generator /opt/openapi-generator
-COPY --from=base /usr/local/bin/docker-entrypoint.sh /usr/local/bin/openapi-cli-generator
-COPY --from=downloader /app/openapi.json /app/openapi.json
-COPY languages/rust.yaml /app/languages/rust.yaml
-COPY languages/shared/common.yaml /app/languages/shared/common.yaml
-ENV PATH="/opt/java/openjdk/bin:$PATH"
-ENV JAVA_HOME="/opt/java/openjdk"
-RUN mkdir -p /app/clients/rust && \
-    openapi-cli-generator generate -i /app/openapi.json -g rust -o /app/clients/rust
+    inputFile := os.Args[1]
+    outputFile := os.Args[2]
 
-# Stage 13: Final stage to gather all clients
-FROM base AS final
-WORKDIR /app
-COPY --from=javascript /app/clients/javascript /app/clients/javascript
-COPY --from=typescript /app/clients/typescript /app/clients/typescript
-COPY --from=python /app/clients/python /app/clients/python
-COPY --from=java /app/clients/java /app/clients/java
-COPY --from=go /app/clients/go /app/clients/go
-COPY --from=bash /app/clients/bash /app/clients/bash
-COPY --from=r /app/clients/r /app/clients/r
-COPY --from=ruby /app/clients/ruby /app/clients/ruby
-COPY --from=php /app/clients/php /app/clients/php
-COPY --from=rust /app/clients/rust /app/clients/rust
+    data, err := ioutil.ReadFile(inputFile)
+    if err != nil {
+        fmt.Println("Error reading input file:", err)
+        return
+    }
 
-CMD ["bash"]
+    var openAPI31 OpenAPI31
+    err = json.Unmarshal(data, &openAPI31)
+    if err != nil {
+        fmt.Println("Error unmarshalling JSON:", err)
+        return
+    }
+
+    // Resolve JSON references
+    resolver := openapi3.NewSwaggerLoader()
+    spec, err := resolver.LoadSwaggerFromData(data)
+    if err != nil {
+        fmt.Println("Error loading OpenAPI document:", err)
+        return
+    }
+
+    // Convert OpenAPI 3.1 to OpenAPI 3.0.3
+    openAPI30 := convertToOpenAPI30(spec)
+
+    // Marshal the new OpenAPI 3.0.3 spec to JSON
+    outputData, err := json.MarshalIndent(openAPI30, "", "  ")
+    if err != nil {
+        fmt.Println("Error marshalling JSON:", err)
+        return
+    }
+
+    // Write the new OpenAPI 3.0.3 spec to a file
+    err = ioutil.WriteFile(outputFile, outputData, 0644)
+    if err != nil {
+        fmt.Println("Error writing output file:", err)
+        return
+    }
+
+    fmt.Println("Generation completed successfully.")
+    validateOpenAPI(outputFile)
+}
+
+func convertToOpenAPI30(spec *openapi3.Swagger) OpenAPI30 {
+    openAPI30 := OpenAPI30{
+        Openapi: "3.0.3",
+        Info: Info{
+            Title:   spec.Info.Title,
+            Version: spec.Info.Version,
+        },
+        Components: Components30{
+            SecuritySchemes: make(map[string]SecurityScheme),
+            Schemas:         make(map[string]Schema30),
+        },
+        Paths: spec.Paths,
+    }
+
+    // Convert security schemes
+    for key, scheme := range spec.Components.SecuritySchemes {
+        openAPI30.Components.SecuritySchemes[key] = SecurityScheme{
+            Type: scheme.Value.Type,
+            Name: scheme.Value.Name,
+            In:   scheme.Value.In,
+        }
+    }
+
+    // Convert schemas
+    for key, schema := range spec.Components.Schemas {
+        openAPI30.Components.Schemas[key] = convertSchema31To30(schema.Value)
+    }
+
+    return openAPI30
+}
+
+func convertSchema31To30(schema31 *openapi3.Schema) Schema30 {
+    schema30 := Schema30{
+        Type:                 schema31.Type,
+        Properties:           make(map[string]Property30),
+        AdditionalProperties: schema31.AdditionalPropertiesAllowed,
+        Enum:                 schema31.Enum,
+        Required:             schema31.Required,
+        AnyOf:                []Schema30{},
+        Format:               schema31.Format,
+        Title:                schema31.Title,
+    }
+
+    for key, property31 := range schema31.Properties {
+        schema30.Properties[key] = convertProperty31To30(property31)
+    }
+
+    if schema31.Items != nil {
+        schema30.Items = convertSchema31To30(schema31.Items.Value)
+    }
+
+    for _, anyOfSchema := range schema31.AnyOf {
+        schema30.AnyOf = append(schema30.AnyOf, convertSchema31To30(anyOfSchema.Value))
+    }
+
+    return schema30
+}
+
+func convertProperty31To30(property31 *openapi3.Schema) Property30 {
+    property30 := Property30{
+        Type:                 property31.Type,
+        Format:               property31.Format,
+        Enum:                 property31.Enum,
+        Properties:           make(map[string]Property30),
+        AdditionalProperties: property31.AdditionalPropertiesAllowed,
+        AnyOf:                []Property30{},
+    }
+
+    for key, subProperty31 := range property31.Properties {
+        property30.Properties[key] = convertProperty31To30(subProperty31)
+    }
+
+    if property31.Items != nil {
+        property30.Items = convertProperty31To30(property31.Items.Value)
+    }
+
+    for _, anyOfProperty := range property31.AnyOf {
+        property30.AnyOf = append(property30.AnyOf, convertProperty31To30(anyOfProperty.Value))
+    }
+
+    return property30
+}
+
+func validateOpenAPI(filePath string) {
+    data, err := ioutil.ReadFile(filePath)
+    if err != nil {
+        fmt.Println("Error reading file for validation:", err)
+        return
+    }
+
+    loader := gojsonschema.NewStringLoader(string(data))
+    schemaLoader := gojsonschema.NewReferenceLoader("https://spec.openapis.org/oas/3.0/schema/2021-09-28")
+
+    result, err := gojsonschema.Validate(schemaLoader, loader)
+    if err != nil {
+        fmt.Println("Error validating OpenAPI document:", err)
+        return
+    }
+
+    if result.Valid() {
+        fmt.Println("The OpenAPI document is valid.")
+    } else {
+        fmt.Printf("The OpenAPI document is not valid. See errors:\n")
+        for _, desc := range result.Errors() {
+            fmt.Printf("- %s\n", desc)
+        }
+    }
+}
