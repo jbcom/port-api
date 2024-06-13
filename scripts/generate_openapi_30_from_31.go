@@ -266,4 +266,7 @@ func validateOpenAPI(filePath string) {
     } else {
         fmt.Printf("The OpenAPI document is not valid. See errors:\n")
         for _, desc := range result.Errors() {
-           
+            fmt.Printf("- %s\n", desc)
+        }
+    }
+}
