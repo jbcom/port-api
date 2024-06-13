@@ -46,52 +46,51 @@ type SecurityScheme struct {
 }
 
 type Schema31 struct {
-    Type                 string                 `json:"type,omitempty"`
-    Properties           map[string]Property31  `json:"properties,omitempty"`
-    Items                *Schema31              `json:"items,omitempty"`
-    AdditionalProperties bool                   `json:"additionalProperties"`
-    Enum                 []string               `json:"enum,omitempty"`
-    Required             []string               `json:"required,omitempty"`
-    OneOf                []Schema31             `json:"oneOf,omitempty"`
-    AnyOf                []Schema31             `json:"anyOf,omitempty"`
-    AllOf                []Schema31             `json:"allOf,omitempty"`
-    Format               string                 `json:"format,omitempty"`
-    Title                string                 `json:"title,omitempty"`
+    Type                 string                `json:"type,omitempty"`
+    Properties           map[string]Property31 `json:"properties,omitempty"`
+    Items                *Schema31             `json:"items,omitempty"`
+    AdditionalProperties *bool                 `json:"additionalProperties,omitempty"`
+    Enum                 []interface{}         `json:"enum,omitempty"`
+    Required             []string              `json:"required,omitempty"`
+    OneOf                []*Schema31           `json:"oneOf,omitempty"`
+    AnyOf                []*Schema31           `json:"anyOf,omitempty"`
+    AllOf                []*Schema31           `json:"allOf,omitempty"`
+    Format               string                `json:"format,omitempty"`
+    Title                string                `json:"title,omitempty"`
 }
 
 type Schema30 struct {
-    Type                 string                 `json:"type,omitempty"`
-    Properties           map[string]Property30  `json:"properties,omitempty"`
-    Items                *Schema30              `json:"items,omitempty"`
-    AdditionalProperties bool                   `json:"additionalProperties"`
-    Enum                 []string               `json:"enum,omitempty"`
-    Required             []string               `json:"required,omitempty"`
-    AnyOf                []Schema30             `json:"anyOf,omitempty"`
-    Format               string                 `json:"format,omitempty"`
-    Title                string                 `json:"title,omitempty"`
+    Type                 string                `json:"type,omitempty"`
+    Properties           map[string]Property30 `json:"properties,omitempty"`
+    Items                *Schema30             `json:"items,omitempty"`
+    AdditionalProperties *bool                 `json:"additionalProperties,omitempty"`
+    Enum                 []string              `json:"enum,omitempty"`
+    Required             []string              `json:"required,omitempty"`
+    AnyOf                []*Schema30           `json:"anyOf,omitempty"`
+    Format               string                `json:"format,omitempty"`
+    Title                string                `json:"title,omitempty"`
 }
 
 type Property31 struct {
-    Type                 string                 `json:"type,omitempty"`
-    Format               string                 `json:"format,omitempty"`
-    Enum                 []string               `json:"enum,omitempty"`
-    Properties           map[string]Property31  `json:"properties,omitempty"`
-    Items                *Property31            `json:"items,omitempty"`
-    AdditionalProperties bool                   `json:"additionalProperties,omitempty"`
-    OneOf                []Property31           `json:"oneOf,omitempty"`
-    AnyOf                []Property31           `json:"anyOf,omitempty"`
-    AllOf                []Property31           `json:"allOf,omitempty"`
+    Type                 string                `json:"type,omitempty"`
+    Format               string                `json:"format,omitempty"`
+    Enum                 []interface{}         `json:"enum,omitempty"`
+    Properties           map[string]Property31 `json:"properties,omitempty"`
+    Items                *Property31           `json:"items,omitempty"`
+    AdditionalProperties *bool                 `json:"additionalProperties,omitempty"`
+    OneOf                []*Property31         `json:"oneOf,omitempty"`
+    AnyOf                []*Property31         `json:"anyOf,omitempty"`
+    AllOf                []*Property31         `json:"allOf,omitempty"`
 }
 
 type Property30 struct {
-    Type                 string                 `json:"type,omitempty"`
-    Format               string                 `json:"format,omitempty"`
-    Enum                 []string               `json:"enum,omitempty"`
-    Properties           map[string]Property30  `json:"properties,omitempty"`
-    Items                *Property30            `json:"items,omitempty"`
-    AdditionalProperties bool                   `json:"additionalProperties,omitempty"`
-    AnyOf                []Property30           `json:"anyOf,omitempty"`
-    Format               string                 `json:"format,omitempty"`
+    Type                 string                `json:"type,omitempty"`
+    Format               string                `json:"format,omitempty"`
+    Enum                 []string              `json:"enum,omitempty"`
+    Properties           map[string]Property30 `json:"properties,omitempty"`
+    Items                *Property30           `json:"items,omitempty"`
+    AdditionalProperties *bool                 `json:"additionalProperties,omitempty"`
+    AnyOf                []*Property30         `json:"anyOf,omitempty"`
 }
 
 func main() {
@@ -117,8 +116,8 @@ func main() {
     }
 
     // Resolve JSON references
-    resolver := openapi3.NewSwaggerLoader()
-    spec, err := resolver.LoadSwaggerFromData(data)
+    loader := openapi3.NewLoader()
+    spec, err := loader.LoadFromData(data)
     if err != nil {
         fmt.Println("Error loading OpenAPI document:", err)
         return
@@ -145,7 +144,7 @@ func main() {
     validateOpenAPI(outputFile)
 }
 
-func convertToOpenAPI30(spec *openapi3.Swagger) OpenAPI30 {
+func convertToOpenAPI30(spec *openapi3.T) OpenAPI30 {
     openAPI30 := OpenAPI30{
         Openapi: "3.0.3",
         Info: Info{
@@ -180,16 +179,16 @@ func convertSchema31To30(schema31 *openapi3.Schema) Schema30 {
     schema30 := Schema30{
         Type:                 schema31.Type,
         Properties:           make(map[string]Property30),
-        AdditionalProperties: schema31.AdditionalPropertiesAllowed,
-        Enum:                 schema31.Enum,
+        AdditionalProperties: schema31.AdditionalProperties,
+        Enum:                 convertEnum31To30(schema31.Enum),
         Required:             schema31.Required,
-        AnyOf:                []Schema30{},
+        AnyOf:                []*Schema30{},
         Format:               schema31.Format,
         Title:                schema31.Title,
     }
 
     for key, property31 := range schema31.Properties {
-        schema30.Properties[key] = convertProperty31To30(property31)
+        schema30.Properties[key] = convertProperty31To30(property31.Value)
     }
 
     if schema31.Items != nil {
@@ -203,18 +202,28 @@ func convertSchema31To30(schema31 *openapi3.Schema) Schema30 {
     return schema30
 }
 
+func convertEnum31To30(enum31 []interface{}) []string {
+    var enum30 []string
+    for _, e := range enum31 {
+        if str, ok := e.(string); ok {
+            enum30 = append(enum30, str)
+        }
+    }
+    return enum30
+}
+
 func convertProperty31To30(property31 *openapi3.Schema) Property30 {
     property30 := Property30{
         Type:                 property31.Type,
         Format:               property31.Format,
-        Enum:                 property31.Enum,
+        Enum:                 convertEnum31To30(property31.Enum),
         Properties:           make(map[string]Property30),
-        AdditionalProperties: property31.AdditionalPropertiesAllowed,
-        AnyOf:                []Property30{},
+        AdditionalProperties: property31.AdditionalProperties,
+        AnyOf:                []*Property30{},
     }
 
     for key, subProperty31 := range property31.Properties {
-        property30.Properties[key] = convertProperty31To30(subProperty31)
+        property30.Properties[key] = convertProperty31To30(subProperty31.Value)
     }
 
     if property31.Items != nil {
