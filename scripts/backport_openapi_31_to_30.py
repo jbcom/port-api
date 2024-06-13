@@ -12,38 +12,53 @@ def backport_openapi_31_to_30(spec):
     # Update OpenAPI version
     spec['openapi'] = '3.0.3'
 
-    # Recursively process paths and methods
-    for path, methods in spec['paths'].items():
-        for method, operation in methods.items():
-            if 'requestBody' in operation:
-                if 'content' in operation['requestBody']:
-                    operation['requestBody'] = operation['requestBody']['content'].get('application/json', {})
+    def process_schema(schema):
+        queue = [schema]
+        while queue:
+            current = queue.pop(0)
+            if isinstance(current, dict):
+                if '$schema' in current:
+                    del current['$schema']
+                if 'discriminator' in current:
+                    del current['discriminator']
+                if 'nullable' in current:
+                    del current['nullable']
+                if 'readOnly' in current:
+                    del current['readOnly']
+                if 'writeOnly' in current:
+                    del current['writeOnly']
+                if 'externalDocs' in current:
+                    del current['externalDocs']
+                if 'xml' in current:
+                    del current['xml']
+                if 'example' in current:
+                    del current['example']
+                if 'content' in current:
+                    del current['content']
+                if 'title' not in current:
+                    current['title'] = "InlineModel"
+                for key, value in current.items():
+                    if isinstance(value, (dict, list)):
+                        queue.append(value)
+            elif isinstance(current, list):
+                for item in current:
+                    queue.append(item)
+
+    # Process components schemas
+    if 'components' in spec and 'schemas' in spec['components']:
+        for schema in spec['components']['schemas'].values():
+            process_schema(schema)
+
+    # Process paths
+    for path_item in spec['paths'].values():
+        for operation in path_item.values():
+            if 'requestBody' in operation and 'content' in operation['requestBody']:
+                operation['requestBody'] = operation['requestBody']['content'].get('application/json', {})
             for param in operation.get('parameters', []):
                 if 'schema' in param and 'type' not in param['schema']:
-                    param['schema']['type'] = 'string'  # Default to 'string' if type is missing
-            if 'responses' in operation:
-                for response in operation['responses'].values():
-                    if 'content' in response:
-                        for content_type, content in response['content'].items():
-                            if 'schema' in content and 'type' not in content['schema']:
-                                content['schema']['type'] = 'object'  # Default to 'object' if type is missing
-
-    # Remove unsupported keys
-    unsupported_keys = ['discriminator', 'nullable', 'readOnly', 'writeOnly', 'xml', 'externalDocs', 'example']
-    def remove_unsupported_keys(schema):
-        if isinstance(schema, dict):
-            for key in unsupported_keys:
-                if key in schema:
-                    del schema[key]
-            for key, value in schema.items():
-                if isinstance(value, dict) or isinstance(value, list):
-                    remove_unsupported_keys(value)
-        elif isinstance(schema, list):
-            for item in schema:
-                remove_unsupported_keys(item)
-
-    for component in spec.get('components', {}).get('schemas', {}).values():
-        remove_unsupported_keys(component)
+                    param['schema']['type'] = 'string'
+            for key in ['responses', 'callbacks', 'deprecated', 'servers']:
+                operation.pop(key, None)
 
     return spec
 
@@ -55,11 +70,8 @@ def save_backported_spec(spec, output_file):
 if __name__ == "__main__":
     url = "https://api.getport.io/json"
     spec = download_openapi_spec(url)
-    print(f"Downloaded spec: {spec}")
-
     backported_spec = backport_openapi_31_to_30(spec)
-    print(f"Backported spec: {backported_spec}")
-
     validate_spec(backported_spec)
     save_backported_spec(backported_spec, 'openapi.json')
     print("openapi.json successfully created and validated.")
+    
