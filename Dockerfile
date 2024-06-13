@@ -5,7 +5,7 @@ FROM openapitools/openapi-generator-cli as base
 FROM golang:1.20 AS downloader
 WORKDIR /app
 COPY scripts/generate_openapi_30_from_31.go /app/generate_openapi_30_from_31.go
-COPY scripts/go.mod /app/go.mod
+COPY go.mod /app/go.mod
 
 # Initialize Go module and download dependencies
 RUN go mod download
