@@ -2,10 +2,16 @@
 FROM openapitools/openapi-generator-cli as base
 
 # Stage 2: Download and run the new OpenAPI generation script
-FROM golang:latest AS downloader
+FROM golang:1.20 AS downloader
 WORKDIR /app
 COPY scripts/generate_openapi_30_from_31.go /app/generate_openapi_30_from_31.go
-RUN go mod init generate && go get github.com/getkin/kin-openapi/openapi3 && go build -o generate_openapi_30_from_31 generate_openapi_30_from_31.go
+COPY scripts/go.mod /app/go.mod
+
+# Initialize Go module and download dependencies
+RUN go mod download
+
+# Build the Go script
+RUN go build -o generate_openapi_30_from_31 generate_openapi_30_from_31.go
 
 # Download the OpenAPI 3.1 specification
 RUN curl -o input_openapi_31.json https://api.getport.io/json
@@ -50,7 +56,7 @@ RUN mkdir -p /app/clients/java && \
     docker-entrypoint.sh generate -i /app/openapi.json -g java -o /app/clients/java
 
 # Stage 7: Generate clients for Go
-FROM golang:latest AS go
+FROM golang:1.20 AS go
 WORKDIR /app
 COPY --from=base /opt/java /opt/java
 COPY --from=base /opt/openapi-generator /opt/openapi-generator
