@@ -1,4 +1,4 @@
-inputSpec: ../openapi.json
+inputSpec: ../openapi.yaml
 additionalProperties:
   packageName: port_api_client
   packageVersion: 1.0.0
