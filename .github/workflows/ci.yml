@@ -11,45 +11,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  checkout:
-    runs-on: ubuntu-latest
-    outputs:
-      sha: ${{ steps.checkout.outputs.sha }}
-    steps:
-      - name: Checkout repository
-        id: checkout
-        uses: actions/checkout@v4
-
-  download_spec:
-    runs-on: ubuntu-latest
-    needs: checkout
-    steps:
-      - name: Download Port Docs repo
-        run: |
-         git clone https://github.com/port-labs/port-docs.git
-         cp port-docs/static/spectmp.yaml openapi.yaml
-      - name: Save input file
-        uses: actions/upload-artifact@v4
-        with:
-          name: input_openapi_3
-          path: openapi.yaml
-
   generate_clients:
     runs-on: ubuntu-latest
-    needs: [checkout, download_spec]
     strategy:
       matrix:
         language: [javascript, typescript, python, java, go, bash, r, ruby, php, rust]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Download converted spec
-        uses: actions/download-artifact@v4
-        with:
-          name: openapi_30
-          path: ./openapi.yaml
-
+      - name: Download Port Docs repo
+        run: |
+         git clone https://github.com/port-labs/port-docs.git
+         cp port-docs/static/spectmp.yaml openapi.yaml
       - name: Set up Python
         if: matrix.language == 'python'
         uses: actions/setup-python@v4
