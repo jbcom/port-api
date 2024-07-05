@@ -24,47 +24,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: checkout
     steps:
-      - name: Download OpenAPI 3.1 specification
-        run: curl -o input_openapi_31.json https://api.getport.io/json
+      - name: Download Port Docs repo
+        run: |
+         git clone https://github.com/port-labs/port-docs.git
+         cp port-docs/static/spectmp.yaml openapi.yaml
       - name: Save input file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: input_openapi_31
-          path: input_openapi_31.json
-
-  convert_spec:
-    runs-on: ubuntu-latest
-    needs: [checkout, download_spec]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download input file
-        uses: actions/download-artifact@v3
-        with:
-          name: input_openapi_31
-          path: ./input_openapi_31.json
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.22.4'
-
-      - name: Download dependencies
-        run: go mod tidy
-
-      - name: Run conversion script
-        run: go run scripts/generate_openapi_30_from_31.go input_openapi_31.json openapi.json
-
-      - name: Save converted spec
-        uses: actions/upload-artifact@v3
-        with:
-          name: openapi_30
-          path: openapi.json
+          name: input_openapi_3
+          path: openapi.yaml
 
   generate_clients:
     runs-on: ubuntu-latest
-    needs: [checkout, convert_spec]
+    needs: [checkout, download_spec]
     strategy:
       matrix:
         language: [javascript, typescript, python, java, go, bash, r, ruby, php, rust]
@@ -73,10 +45,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download converted spec
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: openapi_30
-          path: ./openapi.json
+          path: ./openapi.yaml
 
       - name: Set up Python
         if: matrix.language == 'python'
@@ -143,7 +115,7 @@ jobs:
       - name: Generate clients for ${{ matrix.language }}
         run: |
           mkdir -p clients/${{ matrix.language }}
-          openapi-generator-cli generate -i openapi.json -g ${{ matrix.language }} -o clients/${{ matrix.language }}
+          openapi-generator-cli generate -i openapi.yaml -g ${{ matrix.language }} -o clients/${{ matrix.language }}
 
       - name: Save clients
         uses: actions/upload-artifact@v3
