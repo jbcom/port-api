@@ -25,7 +25,7 @@ jobs:
          cp port-docs/static/spectmp.yaml openapi.yaml
       - name: Set up Python
         if: matrix.language == 'python'
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -74,7 +74,7 @@ jobs:
 
       - name: Set up Go
         if: matrix.language == 'go'
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: '1.22'
 
@@ -91,7 +91,7 @@ jobs:
           openapi-generator-cli generate -i openapi.yaml -g ${{ matrix.language }} -o clients/${{ matrix.language }} --skip-validate-spec
 
       - name: Save clients
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: clients-${{ matrix.language }}
           path: clients/${{ matrix.language }}
@@ -104,13 +104,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download clients
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: clients-${{ matrix.language }}
           path: ./clients/${{ matrix.language }}
 
       - name: Commit and push clients
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Auto-commit generated clients for ${{ matrix.language }}"
           branch: ${{ github.ref }}
